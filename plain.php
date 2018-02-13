@@ -4,7 +4,7 @@ class plugin {
 	private $sphinxql = false;
 
 	public function init() {
-		$this->sphinxql = new mysqli('127.0.0.1', '', '', '', 9314);
+		$this->sphinxql = new mysqli('127.0.0.1', '', '', '', 9315);
 	}
 
 	public function query($queries) {
