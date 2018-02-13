@@ -31,6 +31,7 @@ if (is_dir($data)) {
 	$els = file($data, FILE_IGNORE_NEW_LINES);
 	if (isset($options['limit'])) $els = array_slice($els, 0, $options['limit']);
 }
+$elsCount = count($els);
 
 file_put_contents('/tmp/stress_test_lock.tmp', "0\n");
 
@@ -44,18 +45,18 @@ $checkTime = microtime(true);
 $startTime = $checkTime;
 $prevCount = 0;
 $pluginOutput = array();
+$semaphoreId = sem_get(1, 1);
 do {
-	$fp = fopen("/tmp/stress_test_lock.tmp", "r");
-	if (flock($fp, LOCK_EX)) {
-		$elsLeft = count($els) - intval(trim(fgets($fp)));
-		flock($fp, LOCK_UN);
+	if (sem_acquire($semaphoreId)) {
+		$elsLeft = $elsCount - intval(trim(file_get_contents('/tmp/stress_test_lock.tmp')));
+		sem_release($semaphoreId);
 	}
 
 	if (!isset($options['csv']) and (!count($children) or microtime(true) - $checkTime > 1)) { // dump stats in the beginning and each second
 		clearstatcache();
                 $throughputCurrent = floor((count($latencies) - $prevCount) / (microtime(true) - $checkTime));
 		$throughputOverall = floor(count($latencies) / (microtime(true) - $startTime));
-                echo "Time elapsed: ".round(microtime(true) - $startTime, 3)." sec, throughput (curr / from start): $throughputCurrent / $throughputOverall rps, ".count($children)." children running, $elsLeft elements left\n";
+                echo date('H:i:s')."Time elapsed: ".round(microtime(true) - $startTime, 3)." sec, throughput (curr / from start): $throughputCurrent / $throughputOverall rps, ".count($children)." children running, $elsLeft elements left\n";
 		$prevCount = count($latencies);
                 $checkTime = microtime(true);
         }
@@ -67,20 +68,18 @@ do {
 		socket_set_nonblock($sockets[$socketNumber][0]);
                 socket_set_nonblock($sockets[$socketNumber][1]);
 		$pid = pcntl_fork();
-		$plugin->init(); // asking the plugin to initialize what it needs
-		if (!$pid) {
+		if (!$pid) { // child
+	                $plugin->init(); // asking the plugin to initialize what it needs
 			$socket = &$sockets[$socketNumber][1];
 			socket_close($sockets[$socketNumber][0]);
 			$stop = false;
 			while (!$stop) {
-				$fp = fopen("/tmp/stress_test_lock.tmp", "r+");
-				if (flock($fp, LOCK_EX)) {
-					$curPos = intval(trim(fgets($fp)));
-					ftruncate($fp, 0);
+			        if (sem_acquire($semaphoreId)) {
+					$curPos = intval(trim(file_get_contents('/tmp/stress_test_lock.tmp')));
 
 					$batch = array();
 				        while (count($batch) < $batchSize) {
-						if ($curPos == count($els)) {
+						if ($curPos == $elsCount) {
 							$stop = true;
 							break;
 						} else {
@@ -88,10 +87,10 @@ do {
 							$curPos++;
 						}
 					}
-					fwrite($fp, $curPos."\n");
-					fflush($fp);
-					flock($fp, LOCK_UN);
+					file_put_contents('/tmp/stress_test_lock.tmp', $curPos);
+					sem_release($semaphoreId);
 				} else die("ERROR: couldn't get lock via flock\n");
+
 				$docs = array();
 	                        foreach ($batch as $id=>$doc) {
 					if (isset($handle)) { // means $data is a dir containing files, not a single file where each line a doc
@@ -100,17 +99,14 @@ do {
 					} else $text = $doc;
 					$docs[$id] = $text; 
 				}
+
 				if ($docs) {
-//print_r(array_keys($docs));
 					$queryInfo = $plugin->query($docs); //calling the plugin to make the work it needs to do
-//print_r($queryInfo);exit;
-//					$queryInfo = array();
-//					for ($n=0;$n<count($docs);$n++) $queryInfo[] = $output;
 	                                socket_write($socket, serialize($queryInfo)."|");
 				}
 			}
 			exit;
-                } else if ($pid !== -1) {
+                } else if ($pid !== -1) { // parent
 			socket_close($sockets[$socketNumber][1]);
 			$children[$pid] = $sockets[$socketNumber][0];
 		}
@@ -156,7 +152,7 @@ $result = array(
 	'batch size' => $batchSize,
         'total time' => round($totalTime, 3),
 	'throughput' => floor(count($latencies) / $totalTime),
-	'elements count' => count($els),
+	'elements count' => $elsCount,
 	'latencies count' => count($latencies),
 	'avg latency, ms' => round(array_sum($latencies) / count($latencies) * 1000, 3),
 	'median latency, ms' => round($latencies[floor(count($latencies) * 0.5)] * 1000, 3),
