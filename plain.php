@@ -3,15 +3,21 @@ class plugin {
 
 	private $sphinxql = false;
 
-	public function init() {
-		$this->sphinxql = new mysqli('127.0.0.1', '', '', '', 9315);
+	public function init($options) {
+        $port = isset($options['port']) ? $options['port'] : 9312;
+        $this->idx = isset($options['index']) ? $options['index'] : 'idx';
+        $this->maxmatches = '';
+        if (isset($options['maxmatches']))
+            $this->maxmatches = " limit ".$options['maxmatches']." option max_matches=".$options['maxmatches'];
+        
+		$this->sphinxql = new mysqli('127.0.0.1', '', '', '', $port);
 	}
 
 	public function query($queries) {
                 $out = array();
 		foreach ($queries as $id=>$query) {
 			$t = microtime(true);
-			$res = $this->sphinxql->query("select * from idx where match('".$this->sphinxql->escape_string($query)."') limit 100000 option max_matches=100000");
+			$res = $this->sphinxql->query("select * from ".$this->idx." where match('".$this->sphinxql->escape_string($query)."')".$this->maxmatches);
 			$out[$id] = array('latency' => microtime(true) - $t, 'num_rows' => $res->num_rows);
 			/*$ids = array();
 			while($row = $res->fetch_array()) $ids[] = $row['id'];
