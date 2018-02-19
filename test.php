@@ -2,7 +2,7 @@
 <?php
 // Copyright (c) 2018 Ivinco LTD
 
-$options = getopt('hb::c::', array('plugin:', 'data:', 'limit::', 'csv', 'from::'));
+$options = getopt('hb::c::', array('plugin:', 'data:', 'limit::', 'csv', 'from::', 'port::', 'index::', 'maxmatches::'));
 if ((count($options) == 1 and array_keys($options)[0] == 'h') or !isset($options['plugin']) or !isset($options['data'])) die("Usage: ".basename(__FILE__)." [-h] --plugin=path/to/plugin --data=path/to/data [--limit=N] [--from=N] [-b=N] [-c=N] [--csv]
 -b batch size (1 by default)
 -c concurrency (1 by default)
@@ -54,22 +54,22 @@ do {
 
 	if (!isset($options['csv']) and (!count($children) or microtime(true) - $checkTime > 1)) { // dump stats in the beginning and each second
 		clearstatcache();
-                $throughputCurrent = floor((count($latencies) - $prevCount) / (microtime(true) - $checkTime));
+		$throughputCurrent = floor((count($latencies) - $prevCount) / (microtime(true) - $checkTime));
 		$throughputOverall = floor(count($latencies) / (microtime(true) - $startTime));
-                echo date('H:i:s')."Time elapsed: ".round(microtime(true) - $startTime, 3)." sec, throughput (curr / from start): $throughputCurrent / $throughputOverall rps, ".count($children)." children running, $elsLeft elements left\n";
+		echo date('H:i:s')."Time elapsed: ".round(microtime(true) - $startTime, 3)." sec, throughput (curr / from start): $throughputCurrent / $throughputOverall rps, ".count($children)." children running, $elsLeft elements left\n";
 		$prevCount = count($latencies);
-                $checkTime = microtime(true);
-        }
+		$checkTime = microtime(true);
+	}
 
 	$sockets = array();
 	if (count($children) < $concurrency and $elsLeft > 0) {
 		$socketNumber = count($sockets);
 		socket_create_pair(AF_UNIX, SOCK_STREAM, 0, $sockets[$socketNumber]);
 		socket_set_nonblock($sockets[$socketNumber][0]);
-                socket_set_nonblock($sockets[$socketNumber][1]);
+		socket_set_nonblock($sockets[$socketNumber][1]);
 		$pid = pcntl_fork();
 		if (!$pid) { // child
-	                $plugin->init(); // asking the plugin to initialize what it needs
+			$plugin->init($options); // asking the plugin to initialize what it needs
 			$socket = &$sockets[$socketNumber][1];
 			socket_close($sockets[$socketNumber][0]);
 			$stop = false;
@@ -78,12 +78,12 @@ do {
 					$curPos = intval(trim(file_get_contents('/tmp/stress_test_lock.tmp')));
 
 					$batch = array();
-				        while (count($batch) < $batchSize) {
+					while (count($batch) < $batchSize) {
 						if ($curPos == $elsCount) {
 							$stop = true;
 							break;
 						} else {
-					                $batch[$curPos] = $els[$curPos];
+							$batch[$curPos] = $els[$curPos];
 							$curPos++;
 						}
 					}
@@ -92,26 +92,27 @@ do {
 				} else die("ERROR: couldn't get lock via flock\n");
 
 				$docs = array();
-	                        foreach ($batch as $id=>$doc) {
+				foreach ($batch as $id=>$doc) {
 					if (isset($handle)) { // means $data is a dir containing files, not a single file where each line a doc
 						$text = file_get_contents($data."/".$doc);
 						if (preg_match('/\.gz$/', $doc)) $text = gzdecode($text); // if the filename looks encoded decode the contents
 					} else $text = $doc;
+					
 					$docs[$id] = $text; 
 				}
 
 				if ($docs) {
 					$queryInfo = $plugin->query($docs); //calling the plugin to make the work it needs to do
-	                                socket_write($socket, serialize($queryInfo)."|");
+					socket_write($socket, serialize($queryInfo)."|");
 				}
 			}
 			exit;
-                } else if ($pid !== -1) { // parent
+				} else if ($pid !== -1) { // parent
 			socket_close($sockets[$socketNumber][1]);
 			$children[$pid] = $sockets[$socketNumber][0];
 		}
-        }
-        foreach($children as $pid => $socket) {
+		}
+		foreach($children as $pid => $socket) {
 		$read = socket_read($socket, 1024*1024*1024);
 		if ($read) {
 			if (!isset($readBuffer[$pid])) $readBuffer[$pid] = '';
@@ -132,13 +133,13 @@ do {
 			}
 		}
 
-                $res = pcntl_waitpid($pid, $status, WNOHANG);
-                // If the process has already exited
-                if($res == -1 || $res > 0) {
-                        unset($children[$pid]);
-                }
-        }
-        usleep(1000);
+		$res = pcntl_waitpid($pid, $status, WNOHANG);
+		// If the process has already exited
+		if($res == -1 || $res > 0) {
+				unset($children[$pid]);
+		}
+	}
+	usleep(1000);
 } while (count($children) > 0);
 
 $totalTime = microtime(true) - $startTime;
@@ -150,7 +151,7 @@ sort($latencies);
 $result = array(
 	'concurrency' => $concurrency,
 	'batch size' => $batchSize,
-        'total time' => round($totalTime, 3),
+	'total time' => round($totalTime, 3),
 	'throughput' => floor(count($latencies) / $totalTime),
 	'elements count' => $elsCount,
 	'latencies count' => count($latencies),
