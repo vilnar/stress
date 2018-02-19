@@ -60,7 +60,7 @@ do {
 		clearstatcache();
 		$throughputCurrent = floor((count($latencies) - $prevCount) / (microtime(true) - $checkTime));
 		$throughputOverall = floor(count($latencies) / (microtime(true) - $startTime));
-		echo date('H:i:s')."Time elapsed: ".round(microtime(true) - $startTime, 3)." sec, throughput (curr / from start): $throughputCurrent / $throughputOverall rps, ".count($children)." children running, $elsLeft elements left\n";
+		echo "Time elapsed: ".round(microtime(true) - $startTime, 3)." sec, throughput (curr / from start): $throughputCurrent / $throughputOverall rps, ".count($children)." children running, $elsLeft elements left\n";
 		$prevCount = count($latencies);
 		$checkTime = microtime(true);
 	}
