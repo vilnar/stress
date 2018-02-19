@@ -2,7 +2,7 @@
 <?php
 // Copyright (c) 2018 Ivinco LTD
 
-$options = getopt('hb::c::', array('plugin:', 'data:', 'limit::', 'csv', 'from::', 'port::', 'index::', 'maxmatches::'));
+$options = getopt('hb::c::', array('plugin:', 'data:', 'limit::', 'csv', 'from::'));
 if ((count($options) == 1 and array_keys($options)[0] == 'h') or !isset($options['plugin']) or !isset($options['data'])) die("Usage: ".basename(__FILE__)." [-h] --plugin=path/to/plugin --data=path/to/data [--limit=N] [--from=N] [-b=N] [-c=N] [--csv]
 -b batch size (1 by default)
 -c concurrency (1 by default)
@@ -16,6 +16,7 @@ require_once($plugin);
 $plugin = new plugin();
 
 $data = $options['data'];
+if (!file_exists($data)) die("ERROR: --data can't be open\n");
 if (is_dir($data)) {
 	$handle = opendir($data);
 	if (!$handle) die("ERROR: $dir can't be read\n");
@@ -33,10 +34,13 @@ if (is_dir($data)) {
 }
 $elsCount = count($els);
 
-file_put_contents('/tmp/stress_test_lock.tmp', "0\n");
+file_put_contents('stress_test_lock.tmp', "0\n");
 
-$batchSize = isset($options['b'])?$options['b']:1;
-$concurrency = isset($options['c'])?$options['c']:1;
+$batchSize = isset($options['b'])?intval($options['b']):1;
+$concurrency = isset($options['c'])?intval($options['c']):1;
+if (!is_integer($batchSize) or !$batchSize) die("-b has a wrong value\n");
+if (!is_integer($concurrency) or !$concurrency) die("-c has a wrong value\n");
+
 $batch = array();
 $children = array();
 $latencies = array();
@@ -48,7 +52,7 @@ $pluginOutput = array();
 $semaphoreId = sem_get(1, 1);
 do {
 	if (sem_acquire($semaphoreId)) {
-		$elsLeft = $elsCount - intval(trim(file_get_contents('/tmp/stress_test_lock.tmp')));
+		$elsLeft = $elsCount - intval(trim(file_get_contents('stress_test_lock.tmp')));
 		sem_release($semaphoreId);
 	}
 
@@ -69,14 +73,13 @@ do {
 		socket_set_nonblock($sockets[$socketNumber][1]);
 		$pid = pcntl_fork();
 		if (!$pid) { // child
-			$plugin->init($options); // asking the plugin to initialize what it needs
+			$plugin->init(); // asking the plugin to initialize what it needs
 			$socket = &$sockets[$socketNumber][1];
 			socket_close($sockets[$socketNumber][0]);
 			$stop = false;
 			while (!$stop) {
-			        if (sem_acquire($semaphoreId)) {
-					$curPos = intval(trim(file_get_contents('/tmp/stress_test_lock.tmp')));
-
+				if (sem_acquire($semaphoreId)) {
+					$curPos = intval(trim(file_get_contents('stress_test_lock.tmp')));
 					$batch = array();
 					while (count($batch) < $batchSize) {
 						if ($curPos == $elsCount) {
@@ -87,7 +90,7 @@ do {
 							$curPos++;
 						}
 					}
-					file_put_contents('/tmp/stress_test_lock.tmp', $curPos);
+					file_put_contents('stress_test_lock.tmp', $curPos);
 					sem_release($semaphoreId);
 				} else die("ERROR: couldn't get lock via flock\n");
 
@@ -97,7 +100,6 @@ do {
 						$text = file_get_contents($data."/".$doc);
 						if (preg_match('/\.gz$/', $doc)) $text = gzdecode($text); // if the filename looks encoded decode the contents
 					} else $text = $doc;
-					
 					$docs[$id] = $text; 
 				}
 
@@ -107,12 +109,12 @@ do {
 				}
 			}
 			exit;
-				} else if ($pid !== -1) { // parent
+		} else if ($pid !== -1) { // parent
 			socket_close($sockets[$socketNumber][1]);
 			$children[$pid] = $sockets[$socketNumber][0];
 		}
-		}
-		foreach($children as $pid => $socket) {
+	}
+	foreach($children as $pid => $socket) {
 		$read = socket_read($socket, 1024*1024*1024);
 		if ($read) {
 			if (!isset($readBuffer[$pid])) $readBuffer[$pid] = '';
@@ -136,7 +138,7 @@ do {
 		$res = pcntl_waitpid($pid, $status, WNOHANG);
 		// If the process has already exited
 		if($res == -1 || $res > 0) {
-				unset($children[$pid]);
+			unset($children[$pid]);
 		}
 	}
 	usleep(1000);

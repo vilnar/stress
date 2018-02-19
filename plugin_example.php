@@ -8,8 +8,12 @@ class plugin {
 	/* this function will be called when each parallel worker starts, 
 	it's expected that you initialize a conneciton here etc.*/
 	public function init() {
+		// If you want you can parse additional params passed to test.php
+                $options = getopt('', array('port::'));
+                $port = isset($options['port']) ? $options['port'] : 9315;
+
 		// Let's make a SphinxQL connection which will be reused later
-		$this->sphinxql = new mysqli('127.0.0.1', '', '', '', 9314);
+                $this->sphinxql = new mysqli('127.0.0.1', '', '', '', $port);
 	}
 
 	/* this function will be called when a parallel worker is done with preparing a batch (of 1 or multiple documents)

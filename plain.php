@@ -3,14 +3,17 @@ class plugin {
 
 	private $sphinxql = false;
 
-	public function init($options) {
-        $port = isset($options['port']) ? $options['port'] : 9312;
-        $this->idx = isset($options['index']) ? $options['index'] : 'idx';
-        $this->maxmatches = '';
-        if (isset($options['maxmatches']))
-            $this->maxmatches = " limit ".$options['maxmatches']." option max_matches=".$options['maxmatches'];
-        
+	public function init() {
+		$options = getopt('', array('port::', 'index::', 'maxmatches::'));
+
+		$port = isset($options['port']) ? $options['port'] : 9315;
+		$this->idx = isset($options['index']) ? $options['index'] : 'idx';
+		$this->maxmatches = '';
+		if (isset($options['maxmatches']))
+		$this->maxmatches = " limit ".$options['maxmatches']." option max_matches=".$options['maxmatches'];
+
 		$this->sphinxql = new mysqli('127.0.0.1', '', '', '', $port);
+
 	}
 
 	public function query($queries) {
