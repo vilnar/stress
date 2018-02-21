@@ -21,7 +21,7 @@ class plugin {
 	}
 
 	public function query($queries) {
-				$out = array();
+		$out = array();
 		foreach ($queries as $id=>$query) {
 			$t = microtime(true);
 			$res = $this->sphinxql->query("select * from ".$this->idx." where match('".$this->sphinxql->escape_string($query)."')" . $this->filter . $this->maxmatches);
