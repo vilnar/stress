@@ -17,6 +17,8 @@ $plugin = new plugin();
 
 $data = $options['data'];
 if (!file_exists($data)) die("ERROR: --data can't be open\n");
+
+$els = array();
 if (is_dir($data)) {
 	$handle = opendir($data);
 	if (!$handle) die("ERROR: $dir can't be read\n");
@@ -29,8 +31,10 @@ if (is_dir($data)) {
 		if (isset($options['limit']) and count($els) == $options['limit']) break;
 	}
 } else {
-	$els = file($data, FILE_IGNORE_NEW_LINES);
-	if (isset($options['limit'])) $els = array_slice($els, 0, $options['limit']);
+	$sourceEls = file($data, FILE_IGNORE_NEW_LINES);
+	if (isset($options['limit'])) {
+		while (count($els) < $options['limit'])	$els = array_merge($els, array_slice($sourceEls, 0, $options['limit'] - count($els)));
+	} else $els = $sourceEls;
 }
 $elsCount = count($els);
 
