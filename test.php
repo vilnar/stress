@@ -104,8 +104,11 @@ do {
 				}
 
 				if ($docs) {
+
 					$queryInfo = $plugin->query($docs); //calling the plugin to make the work it needs to do
-					socket_write($socket, serialize($queryInfo)."|");
+					if (!socket_write($socket, serialize($queryInfo)."|")) {
+						die("ERROR while writing to socket in child\n");
+					}
 				}
 			}
 			exit;
@@ -115,7 +118,7 @@ do {
 		}
 	}
 	foreach($children as $pid => $socket) {
-		$read = socket_read($socket, 1024*1024*1024);
+		$read = socket_read($socket, 1024*1024*10);
 		if ($read) {
 			if (!isset($readBuffer[$pid])) $readBuffer[$pid] = '';
 			$readBuffer[$pid] .= $read;
