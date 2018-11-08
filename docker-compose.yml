@@ -1,0 +1,13 @@
+version: '3'
+services:
+  stress-tester:
+    build: .
+    depends_on:
+      - "manticore"
+    command: [ "./wait-for", "manticore:9306", "-t", "1000", "--", "php", "./test.php", "--data=google-10000-english.txt", "--plugin=rt_insert.php", "-c=10" ]
+    container_name: "stress-tester"
+  manticore:
+    image: "manticoresearch/manticore:2.7.4"
+    ports:
+      - "9306:9306"
+    container_name: "manticore"
