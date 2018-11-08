@@ -54,6 +54,10 @@ $startTime = $checkTime;
 $prevCount = 0;
 $pluginOutput = array();
 $semaphoreId = sem_get(1, 1);
+
+// one time initialization via plugin's static init function
+@plugin::init_global();
+
 do {
 	if (sem_acquire($semaphoreId)) {
 		$elsLeft = $elsCount - intval(trim(file_get_contents('stress_test_lock.tmp')));
