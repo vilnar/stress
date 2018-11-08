@@ -4,7 +4,7 @@ services:
     build: .
     depends_on:
       - "manticore"
-    command: [ "./wait-for", "manticore:9306", "-t", "1000", "--", "php", "./test.php", "--data=google-10000-english.txt", "--plugin=rt_insert.php", "-c=10" ]
+    command: [ "./wait-for", "manticore:9306", "-t", "1000", "--", "php", "./test.php", "--data=test.txt", "--plugin=rt_insert.php", "-c=10", "-b=10", "--limit=10000" ]
     container_name: "stress-tester"
   manticore:
     image: "manticoresearch/manticore:2.7.4"

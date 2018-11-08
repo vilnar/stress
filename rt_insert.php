@@ -3,20 +3,26 @@ class plugin {
 
         private $sphinxql = false;
 
+        public static function init_global() {
+                $sphinxql = new mysqli('manticore', '', '', '', 9306);
+                $sphinxql->query("alter table testrt add column str string");
+                $sphinxql->query("alter rtindex testrt reconfigure");
+                $sphinxql->query("set global query_log_format=sphinxql");
+                $sphinxql->query("truncate rtindex testrt");
+                $sphinxql->close();
+        }
+
         public function init() {
                 $this->sphinxql = new mysqli('manticore', '', '', '', 9306);
-                $this->sphinxql->query("alter table testrt add column str string");
-                $this->sphinxql->query("alter rtindex testrt reconfigure");
-                $this->sphinxql->query("set global query_log_format=sphinxql");
-                $this->sphinxql->query("truncate rtindex testrt");
         }
 
         public function query($queries) {
                 $out = array();
                 foreach ($queries as $id=>$query) {
                         $t = microtime(true);
-                        $query = "insert into testrt values($id, '$query', '$query', ".rand(1,100).", '$query')";
+                        $query = "insert into testrt values(".($id+1).", '$query', '$query', ".rand(1,100).", '$query')";
                         $res = $this->sphinxql->query($query);
+                        if ($this->sphinxql->error) echo "ERROR: {$this->sphinxql->error}\n";
                         $out[$id] = array('latency' => microtime(true) - $t);
                 }
                 return $out;
