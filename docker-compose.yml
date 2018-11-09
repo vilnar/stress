@@ -3,11 +3,13 @@ services:
   stress-tester:
     build: .
     depends_on:
-      - "manticore"
-    command: [ "./wait-for", "manticore:9306", "-t", "1000", "--", "php", "./test.php", "--data=test.txt", "--plugin=rt_insert.php", "-c=10", "-b=10", "--limit=10000" ]
+      - "sphinx"
+    command: [ "./wait-for", "sphinx:9306", "-t", "1000", "--", "php", "./test.php", "--data=test.txt", "--plugin=rt_insert_sphinx.php", "-c=10", "-b=10", "--limit=10000" ]
     container_name: "stress-tester"
-  manticore:
-    image: "manticoresearch/manticore:2.7.4"
+  sphinx:
+    build: 
+      context: .
+      dockerfile: Dockerfile_sphinx
     ports:
       - "9306:9306"
-    container_name: "manticore"
+    container_name: "sphinx"

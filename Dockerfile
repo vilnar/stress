@@ -7,5 +7,4 @@ RUN [ "docker-php-ext-install", "pcntl" ]
 RUN [ "docker-php-ext-install", "mysqli" ]
 WORKDIR /app
 COPY . /app
-#ENTRYPOINT [ "php", "./test.php" ]
 CMD [ "php", "./test.php" ]
