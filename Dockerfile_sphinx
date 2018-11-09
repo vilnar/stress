@@ -1,29 +1,5 @@
 FROM phusion/baseimage as builder
-
 RUN apt-get update
-RUN apt-get -y install software-properties-common build-essential cmake unixodbc-dev libpq-dev libexpat-dev libmysqlclient-dev git flex bison wget
-
-RUN apt-get update
-RUN apt-get -y install libmysql++-dev 
-RUN apt-get -y install libodbc1
-
-RUN mkdir /build 
-RUN cd /build && wget http://sphinxsearch.com/files/sphinx-2.2.8-release.tar.gz 
-RUN cd /build && tar -xvf sphinx-2.2.8-release.tar.gz
-RUN cd /build/sphinx-2.2.8-release && ./configure --enable-id64 && make
-
-COPY sphinx.conf /usr/local/etc/sphinx.conf
-
-FROM phusion/baseimage
-COPY --from=builder /build/sphinx-2.2.8-release/src/indexer /usr/bin/
-COPY --from=builder /build/sphinx-2.2.8-release/src/indextool /usr/bin/
-COPY --from=builder /build/sphinx-2.2.8-release/src/searchd /usr/bin/
-
-RUN apt-get update
-RUN apt-get -y install libmysql++-dev 
-RUN apt-get -y install libodbc1
-
-COPY sphinx.conf /usr/local/etc/sphinx.conf
-
-
+RUN apt-get -y install sphinxsearch
+COPY sphinx.conf /etc/sphinxsearch/sphinx.conf
 ENTRYPOINT [ "/usr/bin/searchd", "--nodetach" ]
