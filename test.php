@@ -2,13 +2,14 @@
 <?php
 // Copyright (c) 2018 Ivinco LTD
 
-$options = getopt('hb::c::', array('plugin:', 'data:', 'limit::', 'csv', 'from::'));
-if ((count($options) == 1 and array_keys($options)[0] == 'h') or !isset($options['plugin']) or !isset($options['data'])) die("Usage: ".basename(__FILE__)." [-h] --plugin=path/to/plugin --data=path/to/data [--limit=N] [--from=N] [-b=N] [-c=N] [--csv]
--b batch size (1 by default)
--c concurrency (1 by default)
---limit max number of documents to process
---from starts with defined document
---csv will output only final result in csv compatible format\n");
+$options = getopt('hb::c::', array('plugin:', 'data:', 'limit::', 'csv', 'from::', 'tag::'));
+if ((count($options) == 1 and array_keys($options)[0] == 'h') or !isset($options['plugin']) or !isset($options['data'])) die("Usage: ".basename(__FILE__)." [-h] --plugin=path/to/plugin --data=path/to/data [--limit=N] [--from=N] [-b=N] [-c=N] [--csv] [--tag=tag]
+-b=N batch size (1 by default)
+-c=N concurrency (1 by default)
+--limit=N max number of documents to process
+--from=N starts with defined document
+--csv will output only final result in csv compatible format
+--tag=tag add tag to the csv output\n");
 
 $plugin = $options['plugin'];
 if (!is_file($plugin)) die("ERROR: plugin can't be open\n");
@@ -31,7 +32,11 @@ if (is_dir($data)) {
 		if (isset($options['limit']) and count($els) == $options['limit']) break;
 	}
 } else {
-	$sourceEls = file($data, FILE_IGNORE_NEW_LINES);
+	if (preg_match('/\.csv$/i', $data)) {
+		$f = fopen($data, 'r');
+		while (!feof($f)) $sourceEls[] = fgetcsv($f);
+	} else $sourceEls = file($data, FILE_IGNORE_NEW_LINES);
+	if (isset($options['from'])) array_splice($sourceEls, 0, $options['from'] - 1);
 	if (isset($options['limit'])) {
 		while (count($els) < $options['limit'])	$els = array_merge($els, array_slice($sourceEls, 0, $options['limit'] - count($els)));
 	} else $els = $sourceEls;
@@ -170,6 +175,7 @@ $result = array(
 	'99p latency, ms' => round($latencies[floor(count($latencies) * 0.99)] * 1000, 3)
 );
 if (isset($options['csv'])) {
+	if (isset($options['tag'])) $result['tag'] = $options['tag'];
 	echo implode(";", array_keys($result))."\n";
 	echo implode(";", array_values($result))."\n";
 } else {
