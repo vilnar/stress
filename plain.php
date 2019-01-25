@@ -7,6 +7,7 @@ class plugin {
 		$options = getopt('', array('port::', 'index::', 'maxmatches::', 'filter::'));
 
 		$port = isset($options['port']) ? $options['port'] : 9315;
+                $host = isset($options['host']) ? $options['host'] : '127.0.0.1';
 		$this->idx = isset($options['index']) ? $options['index'] : 'idx';
 		$this->maxmatches = '';
 		if (isset($options['maxmatches']))
@@ -16,7 +17,7 @@ class plugin {
 		if (isset($options['filter']))
 			$this->filter = " AND ".$options['filter']." ";
 
-		$this->sphinxql = new mysqli('127.0.0.1', '', '', '', $port);
+		$this->sphinxql = new mysqli($host, '', '', '', $port);
 
 	}
 
