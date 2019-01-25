@@ -4,7 +4,7 @@ class plugin {
 	private $sphinxql = false;
 
 	public function init() {
-		$options = getopt('', array('port::', 'index::', 'maxmatches::', 'filter::'));
+		$options = getopt('', array('port::', 'index::', 'maxmatches::', 'filter::', 'host::'));
 
 		$port = isset($options['port']) ? $options['port'] : 9315;
                 $host = isset($options['host']) ? $options['host'] : '127.0.0.1';
