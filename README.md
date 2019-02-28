@@ -9,8 +9,7 @@ Assume that you have installed go lang on your test platform (visit download sec
 Then perform this couple of commands:
 
 ```
-go get github.com/manticoresoftware/stress
-go build github.com/manticoresoftware/stress
+go get -u github.com/manticoresoftware/stress
 ```
 
 ## usage
