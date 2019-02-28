@@ -1,6 +1,19 @@
 # stress-tester
-Pluggable benchmarking tool which can do multi processing and measure throughput and latency
+Pluggable benchmarking tool which can do multi processing and measure throughput and latency.
+It is intentionally written to benchmark manticore daemon.
+As prominent feature it is possibility to cross-bench different protocols manticore supports, and not just public mysql/http, but also ancient sphinx API and even sphinx API internode flavour (the one used by distr index to connect to agents).
 
+## installation
+
+Assume that you have installed go lang on your test platform (visit download section of https://golang.org for it).
+Then perform this couple of commands:
+
+```
+go get github.com/manticoresoftware/stress
+go build github.com/manticoresoftware/stress
+```
+
+## usage
 ```
 Usage: stress [-?] [-b N] [-c N] [--csv] [--data path/to/data] [--from N] [-h mysql|plain3|json|fjson|http|fhttp|api] [--limit N] [--tag tag] [parameters ...]
  -?, --help
@@ -35,7 +48,8 @@ Available plugins:
 	apiclient	executes queries via classic binary sphinx API proto, as php and another APIs
 ```
 
-Few examples:
+## Few examples
+
 ```
 ./stress -h api --limit 100000 -b2 -c10 --data /work/stress/ljquerylog.txt.gz --index lj
 Time elapsed: 0s, throughput (curr / from start): 0 / 0 rps, 10 children running, 0 elements processed
