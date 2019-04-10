@@ -1,13 +1,3 @@
-//
-// Copyright (c) 2019, Manticore Software LTD (http://manticoresearch.com)
-// All rights reserved
-//
-// This program is free software; you can redistribute it and/or modify
-// it under the terms of the GNU General Public License. You should have
-// received a copy of the GPL license along with this program; if you
-// did not, you can find it at http://www.gnu.org/
-//
-
 package main
 
 import (
@@ -29,10 +19,10 @@ const JSON_EOF byte = 0
 type SearchdStatus_e uint16
 
 const (
-	_               = /*SEARCHD_OK*/ SearchdStatus_e(iota) ///< general success, command-specific reply follows
-	SEARCHD_ERROR                                          ///< general failure, error message follows
-	SEARCHD_RETRY                                          ///< temporary failure, error message follows, client should retry later
-	SEARCHD_WARNING                                        ///< general success, warning message and command-specific reply follow
+	SEARCHD_OK      = SearchdStatus_e(iota) ///< general success, command-specific reply follows
+	SEARCHD_ERROR                           ///< general failure, error message follows
+	SEARCHD_RETRY                           ///< temporary failure, error message follows, client should retry later
+	SEARCHD_WARNING                         ///< general success, warning message and command-specific reply follow
 )
 
 /// known commands
@@ -40,77 +30,77 @@ type SearchdCommand_e uint16
 
 const (
 	SEARCHD_COMMAND_SEARCH = SearchdCommand_e(iota)
-	_                      /*SEARCHD_COMMAND_EXCERPT*/
-	_                      /*SEARCHD_COMMAND_UPDATE*/
-	_                      /*SEARCHD_COMMAND_KEYWORDS*/
+	SEARCHD_COMMAND_EXCERPT
+	SEARCHD_COMMAND_UPDATE
+	SEARCHD_COMMAND_KEYWORDS
 	SEARCHD_COMMAND_PERSIST
-	//SEARCHD_COMMAND_STATUS
-	//_
-	//SEARCHD_COMMAND_FLUSHATTRS
-	//SEARCHD_COMMAND_SPHINXQL
-	//SEARCHD_COMMAND_PING
-	//SEARCHD_COMMAND_DELETE
-	//SEARCHD_COMMAND_UVAR
-	//SEARCHD_COMMAND_INSERT
-	//SEARCHD_COMMAND_REPLACE
-	//SEARCHD_COMMAND_COMMIT
-	//SEARCHD_COMMAND_SUGGEST
-	//SEARCHD_COMMAND_JSON
-	//SEARCHD_COMMAND_CALLPQ
-	//SEARCHD_COMMAND_CLUSTERPQ
+	SEARCHD_COMMAND_STATUS
+	_
+	SEARCHD_COMMAND_FLUSHATTRS
+	SEARCHD_COMMAND_SPHINXQL
+	SEARCHD_COMMAND_PING
+	SEARCHD_COMMAND_DELETE
+	SEARCHD_COMMAND_UVAR
+	SEARCHD_COMMAND_INSERT
+	SEARCHD_COMMAND_REPLACE
+	SEARCHD_COMMAND_COMMIT
+	SEARCHD_COMMAND_SUGGEST
+	SEARCHD_COMMAND_JSON
+	SEARCHD_COMMAND_CALLPQ
+	SEARCHD_COMMAND_CLUSTERPQ
 
-	//SEARCHD_COMMAND_TOTAL
-	//SEARCHD_COMMAND_WRONG = SEARCHD_COMMAND_TOTAL
+	SEARCHD_COMMAND_TOTAL
+	SEARCHD_COMMAND_WRONG = SEARCHD_COMMAND_TOTAL
 )
 
 /// known command versions
 type SearchdCommandV_e uint16
 
 const (
-	VER_COMMAND_SEARCH SearchdCommandV_e = 0x121
-	//VER_COMMAND_EXCERPT    SearchdCommandV_e = 0x104
-	//VER_COMMAND_UPDATE     SearchdCommandV_e = 0x103
-	//VER_COMMAND_KEYWORDS   SearchdCommandV_e = 0x101
-	//VER_COMMAND_STATUS     SearchdCommandV_e = 0x101
-	//VER_COMMAND_FLUSHATTRS SearchdCommandV_e = 0x100
-	//VER_COMMAND_SPHINXQL   SearchdCommandV_e = 0x100
-	//VER_COMMAND_JSON       SearchdCommandV_e = 0x100
-	//VER_COMMAND_PING       SearchdCommandV_e = 0x100
-	//VER_COMMAND_UVAR       SearchdCommandV_e = 0x100
-	//VER_COMMAND_CALLPQ     SearchdCommandV_e = 0x100
-	//VER_COMMAND_CLUSTERPQ  SearchdCommandV_e = 0x100
+	VER_COMMAND_SEARCH     SearchdCommandV_e = 0x121
+	VER_COMMAND_EXCERPT    SearchdCommandV_e = 0x104
+	VER_COMMAND_UPDATE     SearchdCommandV_e = 0x103
+	VER_COMMAND_KEYWORDS   SearchdCommandV_e = 0x101
+	VER_COMMAND_STATUS     SearchdCommandV_e = 0x101
+	VER_COMMAND_FLUSHATTRS SearchdCommandV_e = 0x100
+	VER_COMMAND_SPHINXQL   SearchdCommandV_e = 0x100
+	VER_COMMAND_JSON       SearchdCommandV_e = 0x100
+	VER_COMMAND_PING       SearchdCommandV_e = 0x100
+	VER_COMMAND_UVAR       SearchdCommandV_e = 0x100
+	VER_COMMAND_CALLPQ     SearchdCommandV_e = 0x100
+	VER_COMMAND_CLUSTERPQ  SearchdCommandV_e = 0x100
 
-	//VER_COMMAND_WRONG SearchdCommandV_e = 0
+	VER_COMMAND_WRONG SearchdCommandV_e = 0
 )
 
-const VER_MASTER uint32 = 17
+const VER_MASTER uint32 = 16
 
 /// search query sorting orders
 type ESphSortOrder uint32
 
 const (
-	_                 = /*SPH_SORT_RELEVANCE*/ ESphSortOrder(iota) ///< sort by document relevance desc, then by date
-	_                                                              /*SPH_SORT_ATTR_DESC*/     ///< sort by document date desc, then by relevance desc
-	_                                                              /*SPH_SORT_ATTR_ASC*/      ///< sort by document date asc, then by relevance desc
-	_                                                              /*SPH_SORT_TIME_SEGMENTS*/ ///< sort by time segments (hour/day/week/etc) desc, then by relevance desc
-	SPH_SORT_EXTENDED                                              ///< sort by SQL-like expression (eg. "@relevance DESC, price ASC, @id DESC")
-	//SPH_SORT_EXPR                                ///< sort by arithmetic expression in descending order (eg. "@id + max(@weight,1000)*boost + log(price)")
-	//SPH_SORT_TOTAL
+	SPH_SORT_RELEVANCE     = ESphSortOrder(iota) ///< sort by document relevance desc, then by date
+	SPH_SORT_ATTR_DESC                           ///< sort by document date desc, then by relevance desc
+	SPH_SORT_ATTR_ASC                            ///< sort by document date asc, then by relevance desc
+	SPH_SORT_TIME_SEGMENTS                       ///< sort by time segments (hour/day/week/etc) desc, then by relevance desc
+	SPH_SORT_EXTENDED                            ///< sort by SQL-like expression (eg. "@relevance DESC, price ASC, @id DESC")
+	SPH_SORT_EXPR                                ///< sort by arithmetic expression in descending order (eg. "@id + max(@weight,1000)*boost + log(price)")
+	SPH_SORT_TOTAL
 )
 
 /// search query matching mode
 type ESphMatchMode uint32
 
 const (
-	_                   = /*SPH_MATCH_ALL*/ ESphMatchMode(iota) ///< match all query words
-	_                                                           /*SPH_MATCH_ANY*/      ///< match any query word
-	_                                                           /*SPH_MATCH_PHRASE*/   ///< match this exact phrase
-	_                                                           /*SPH_MATCH_BOOLEAN*/  ///< match this boolean query
-	_                                                           /*SPH_MATCH_EXTENDED*/ ///< match this extended query
-	_                                                           /*SPH_MATCH_FULLSCAN*/ ///< match all document IDs w/o fulltext query, apply filters
-	SPH_MATCH_EXTENDED2                                         ///< extended engine V2 (TEMPORARY, WILL BE REMOVED IN 0.9.8-RELEASE)
+	SPH_MATCH_ALL       = ESphMatchMode(iota) ///< match all query words
+	SPH_MATCH_ANY                             ///< match any query word
+	SPH_MATCH_PHRASE                          ///< match this exact phrase
+	SPH_MATCH_BOOLEAN                         ///< match this boolean query
+	SPH_MATCH_EXTENDED                        ///< match this extended query
+	SPH_MATCH_FULLSCAN                        ///< match all document IDs w/o fulltext query, apply filters
+	SPH_MATCH_EXTENDED2                       ///< extended engine V2 (TEMPORARY, WILL BE REMOVED IN 0.9.8-RELEASE)
 
-	//SPH_MATCH_TOTAL
+	SPH_MATCH_TOTAL
 )
 
 /// search query relevance ranking mode
@@ -118,31 +108,31 @@ type ESphRankMode uint32
 
 const (
 	SPH_RANK_PROXIMITY_BM25 = ESphRankMode(iota) ///< default mode, phrase proximity major factor and BM25 minor one (aka SPH03)
-	//SPH_RANK_BM25                                ///< statistical mode, BM25 ranking only (faster but worse quality)
-	//SPH_RANK_NONE                                ///< no ranking, all matches get a weight of 1
-	//SPH_RANK_WORDCOUNT                           ///< simple word-count weighting, rank is a weighted sum of per-field keyword occurence counts
-	//SPH_RANK_PROXIMITY                           ///< phrase proximity (aka SPH01)
-	//SPH_RANK_MATCHANY                            ///< emulate old match-any weighting (aka SPH02)
-	//SPH_RANK_FIELDMASK                           ///< sets bits where there were matches
-	//SPH_RANK_SPH04                               ///< codename SPH04, phrase proximity + bm25 + head/exact boost
-	//SPH_RANK_EXPR                                ///< rank by user expression (eg. "sum(lcs*user_weight)*1000+bm25")
-	//SPH_RANK_EXPORT                              ///< rank by BM25, but compute and export all user expression factors
-	//SPH_RANK_PLUGIN                              ///< user-defined ranker
-	//SPH_RANK_TOTAL
-	//SPH_RANK_DEFAULT = SPH_RANK_PROXIMITY_BM25
+	SPH_RANK_BM25                                ///< statistical mode, BM25 ranking only (faster but worse quality)
+	SPH_RANK_NONE                                ///< no ranking, all matches get a weight of 1
+	SPH_RANK_WORDCOUNT                           ///< simple word-count weighting, rank is a weighted sum of per-field keyword occurence counts
+	SPH_RANK_PROXIMITY                           ///< phrase proximity (aka SPH01)
+	SPH_RANK_MATCHANY                            ///< emulate old match-any weighting (aka SPH02)
+	SPH_RANK_FIELDMASK                           ///< sets bits where there were matches
+	SPH_RANK_SPH04                               ///< codename SPH04, phrase proximity + bm25 + head/exact boost
+	SPH_RANK_EXPR                                ///< rank by user expression (eg. "sum(lcs*user_weight)*1000+bm25")
+	SPH_RANK_EXPORT                              ///< rank by BM25, but compute and export all user expression factors
+	SPH_RANK_PLUGIN                              ///< user-defined ranker
+	SPH_RANK_TOTAL
+	SPH_RANK_DEFAULT = SPH_RANK_PROXIMITY_BM25
 )
 
 /// search query grouping mode
-//type ESphGroupBy int
+type ESphGroupBy int
 
 const (
-	_                = /*SPH_GROUPBY_DAY*/ iota ///< group by day
-	_                                           /*SPH_GROUPBY_WEEK*/  ///< group by week
-	_                                           /*SPH_GROUPBY_MONTH*/ ///< group by month
-	_                                           /*SPH_GROUPBY_YEAR*/  ///< group by year
-	SPH_GROUPBY_ATTR                            ///< group by attribute value
-	//SPH_GROUPBY_ATTRPAIR        ///< group by sequential attrs pair (rendered redundant by 64bit attrs support; removed)
-	//SPH_GROUPBY_MULTIPLE        ///< group by on multiple attribute values
+	SPH_GROUPBY_DAY      = iota ///< group by day
+	SPH_GROUPBY_WEEK            ///< group by week
+	SPH_GROUPBY_MONTH           ///< group by month
+	SPH_GROUPBY_YEAR            ///< group by year
+	SPH_GROUPBY_ATTR            ///< group by attribute value
+	SPH_GROUPBY_ATTRPAIR        ///< group by sequential attrs pair (rendered redundant by 64bit attrs support; removed)
+	SPH_GROUPBY_MULTIPLE        ///< group by on multiple attribute values
 )
 
 /// known collations
@@ -150,11 +140,11 @@ type ESphCollation uint32
 
 const (
 	SPH_COLLATION_LIBC_CI = ESphCollation(iota)
-	//SPH_COLLATION_LIBC_CS
-	//SPH_COLLATION_UTF8_GENERAL_CI
-	//SPH_COLLATION_BINARY
+	SPH_COLLATION_LIBC_CS
+	SPH_COLLATION_UTF8_GENERAL_CI
+	SPH_COLLATION_BINARY
 
-	//SPH_COLLATION_DEFAULT = SPH_COLLATION_LIBC_CI
+	SPH_COLLATION_DEFAULT = SPH_COLLATION_LIBC_CI
 )
 
 /// aggregate function to apply
@@ -162,19 +152,19 @@ type ESphAggrFunc uint32
 
 const (
 	SPH_AGGR_NONE = ESphAggrFunc(iota)
-	//SPH_AGGR_AVG
-	//SPH_AGGR_MIN
-	//SPH_AGGR_MAX
-	//SPH_AGGR_SUM
-	//SPH_AGGR_CAT
+	SPH_AGGR_AVG
+	SPH_AGGR_MIN
+	SPH_AGGR_MAX
+	SPH_AGGR_SUM
+	SPH_AGGR_CAT
 )
 
 type QueryOption_e uint32
 
 const (
 	QUERY_OPT_DEFAULT = QueryOption_e(iota)
-	//QUERY_OPT_DISABLED
-	//QUERY_OPT_ENABLED
+	QUERY_OPT_DISABLED
+	QUERY_OPT_ENABLED
 )
 
 /// known attribute types
@@ -184,28 +174,28 @@ const (
 	// these types are full types
 	// their typecodes are saved in the index schema, and thus,
 	// TYPECODES MUST NOT CHANGE ONCE INTRODUCED
-	_                  = /*SPH_ATTR_NONE*/ ESphAttr(iota) ///< not an attribute at all
-	_                                                     /*SPH_ATTR_INTEGER*/   ///< unsigned 32-bit integer
-	_                                                     /*SPH_ATTR_TIMESTAMP*/ ///< this attr is a timestamp
-	_                                                     // there was SPH_ATTR_ORDINAL=3 once
-	_                                                     /*SPH_ATTR_BOOL*/ ///< this attr is a boolean bit field
-	SPH_ATTR_FLOAT                                        ///< floating point number (IEEE 32-bit)
-	SPH_ATTR_BIGINT                                       ///< signed 64-bit integer
-	_                                                     /*SPH_ATTR_STRING*/ ///< string (binary; in-memory)
-	_                                                     // there was SPH_ATTR_WORDCOUNT=8 once
-	_                                                     /*SPH_ATTR_POLY2D*/ ///< vector of floats, 2D polygon (see POLY2D)
-	SPH_ATTR_STRINGPTR                                    ///< string (binary, in-memory, stored as pointer to the zero-terminated string)
-	_                                                     /*SPH_ATTR_TOKENCOUNT*/ ///< field token count, 32-bit integer
-	_                                                     /*SPH_ATTR_JSON*/       ///< JSON subset; converted, packed, and stored as string
+	SPH_ATTR_NONE       = ESphAttr(iota) ///< not an attribute at all
+	SPH_ATTR_INTEGER                     ///< unsigned 32-bit integer
+	SPH_ATTR_TIMESTAMP                   ///< this attr is a timestamp
+	_                                    // there was SPH_ATTR_ORDINAL=3 once
+	SPH_ATTR_BOOL                        ///< this attr is a boolean bit field
+	SPH_ATTR_FLOAT                       ///< floating point number (IEEE 32-bit)
+	SPH_ATTR_BIGINT                      ///< signed 64-bit integer
+	SPH_ATTR_STRING                      ///< string (binary; in-memory)
+	_                                    // there was SPH_ATTR_WORDCOUNT=8 once
+	SPH_ATTR_POLY2D                      ///< vector of floats, 2D polygon (see POLY2D)
+	SPH_ATTR_STRINGPTR                   ///< string (binary, in-memory, stored as pointer to the zero-terminated string)
+	SPH_ATTR_TOKENCOUNT                  ///< field token count, 32-bit integer
+	SPH_ATTR_JSON                        ///< JSON subset; converted, packed, and stored as string
 
-	//SPH_ATTR_UINT32SET = ESphAttr(0x40000001) ///< MVA, set of unsigned 32-bit integers
-	//SPH_ATTR_INT64SET  = ESphAttr(0x40000002) ///< MVA, set of signed 64-bit integers
+	SPH_ATTR_UINT32SET = ESphAttr(0x40000001) ///< MVA, set of unsigned 32-bit integers
+	SPH_ATTR_INT64SET  = ESphAttr(0x40000002) ///< MVA, set of signed 64-bit integers
 
 	// these types are runtime only
 	// used as intermediate types in the expression engine
-	_                     //*SPH_ATTR_MAPARG*/       = ESphAttr(1000 + iota)
+	SPH_ATTR_MAPARG       = ESphAttr(1000 + iota)
 	SPH_ATTR_FACTORS      ///< packed search factors (binary, in-memory, pooled)
-	_                     /*SPH_ATTR_JSON_FIELD*/ ///< points to particular field in JSON column subset
+	SPH_ATTR_JSON_FIELD   ///< points to particular field in JSON column subset
 	SPH_ATTR_FACTORS_JSON ///< packed search factors (binary, in-memory, pooled, provided to client json encoded)
 
 	SPH_ATTR_UINT32SET_PTR  // in-memory version of MVA32
@@ -506,9 +496,7 @@ func (cl *SphinxClient) Connect(uri string) (err error) {
 }
 
 func (cl *SphinxClient) Close() (err error) {
-	if cl.connected {
-		err = cl.conn.Close()
-	}
+	err = cl.conn.Close()
 	return
 }
 

@@ -353,10 +353,6 @@ func main() {
 	collected := len(collector)
 	fcollected := float32(collected)
 
-	if collected == 0 {
-		return
-	}
-
 	// first, type out final  statistic
 	rawelapsed := time.Since(startTime)
 	elapsed := rawelapsed.Round(time.Millisecond)

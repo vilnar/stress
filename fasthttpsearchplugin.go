@@ -40,7 +40,7 @@ func (this *fasthttpplug) init(opts getopt.Set) {
 	iMaxmatches := getopt.IntLong("maxmatches", 0, 0)
 
 	if err := opts.Getopt(os.Args, nil); err != nil {
-		_, _ = fmt.Fprintln(os.Stderr, err)
+		fmt.Fprintln(os.Stderr, err)
 		getopt.Usage()
 		os.Exit(1)
 	}

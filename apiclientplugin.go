@@ -13,20 +13,23 @@ package main
 import (
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/manticoresoftware/go-sdk/manticore"
 	"github.com/pborman/getopt/v2"
 	"os"
 	"time"
 )
 
 type apiclientopts struct {
+	shost      string
+	sport      uint16
 	maxmatches int
-	uri, idx   string
+	idx        string
 }
 
 type apiclientplug struct {
 	apiclientopts
 	isReady bool
-	client  SphinxClient
+	manticore.Client
 }
 
 func getClientApi() *apiclientplug {
@@ -48,7 +51,8 @@ func (this *apiclientopts) init(opts getopt.Set) {
 		os.Exit(1)
 	}
 
-	this.uri = fmt.Sprintf("%s:%d", *sHost, *iPort)
+	this.shost = *sHost
+	this.sport = uint16(*iPort)
 
 	this.idx = *sIndex
 
@@ -65,18 +69,13 @@ func (this *apiclientplug) setup(opts interface{}) {
 
 	this.apiclientopts = a.apiclientopts
 	var err error
-	err = this.client.Connect(this.uri)
+	this.SetServer(this.shost, this.sport)
+	_, err = this.Open()
 	if err != nil {
 		_, _ = fmt.Fprintln(os.Stderr, err)
 		return
 	}
-
-	err = this.client.SendHandshake()
-	if err != nil {
-		_, _ = fmt.Fprintln(os.Stderr, err)
-	} else {
-		this.isReady = true
-	}
+	this.isReady = true
 }
 
 func (this *apiclientplug) query(queries *[]string) []queryInfo {
@@ -86,25 +85,32 @@ func (this *apiclientplug) query(queries *[]string) []queryInfo {
 		return results
 	}
 
-	for _, query := range *queries {
+	start := time.Now()
+	searches := make([]manticore.Search, len(*queries))
 
-		start := time.Now()
-		count, msg, err := this.client.SendClientSearch(this.idx, query, this.maxmatches)
-		elapsed := time.Since(start)
+	for i := 0; i < len(*queries); i++ {
 
-		if msg != "" {
-			fmt.Println("Remote error:", msg)
-		}
+		searches[i] = manticore.NewSearch((*queries)[i], this.idx, "")
+		searches[i].MaxMatches = int32(this.maxmatches)
+	}
 
-		if err != nil {
-			fmt.Println("Agent error:", err, "for query", query)
+	res, err := this.RunQueries(searches)
+	elapsed := time.Since(start)
+
+	if err != nil {
+		fmt.Println("Remote error:", err.Error())
+	}
+
+	for i := 0; i < len(res); i++ {
+		if res[i].Error != "" {
+			fmt.Println("Agent error:", res[i].Error, "for query", (*queries)[i])
 		} else {
-			results = append(results, queryInfo{latency: elapsed, numRows: count})
+			results = append(results, queryInfo{latency: elapsed, numRows: len(res[i].Matches)})
 		}
 	}
 	return results
 }
 
 func (this *apiclientplug) close() {
-	_ = this.client.Close()
+	_, _ = this.Close()
 }
