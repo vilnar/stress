@@ -51,7 +51,7 @@ func (this *fasthttpplug) init(opts getopt.Set) {
 	}
 
 	this.idx = *sIndex
-	this.url = fmt.Sprintf("http://%s:%d/search", *sHost, *iPort)
+	this.url = fmt.Sprintf("http://%s:%d/json/search", *sHost, *iPort)
 }
 
 func (this *fasthttpplug) setup(opts interface{}) {
@@ -67,9 +67,12 @@ func (this *fasthttpplug) query(queries *[]string) []queryInfo {
 		escquery := url.QueryEscape(query)
 		var sbody string
 		if this.maxmatches != 0 {
-			sbody = fmt.Sprintf("index=%s&match=%s&limit=%d&select=*", this.idx, escquery, this.maxmatches)
+			//			sbody = fmt.Sprintf("\"index\"=%s&match=%s&limit=%d&select=*", this.idx, escquery, this.maxmatches)
+			sbody = fmt.Sprintf("{\"index\":\"%s\",\"query\":{\"query_string\":\"%s\"},\"limit\":%d}", this.idx, escquery, this.maxmatches)
+
 		} else {
-			sbody = fmt.Sprintf("index=%s&match=%s&select=*", this.idx, escquery)
+			//			sbody = fmt.Sprintf("index=%s&match=%s&select=*", this.idx, escquery)
+			sbody = fmt.Sprintf("{\"index\":\"%s\",\"query\":{\"query_string\":\"%s\"}}", this.idx, escquery)
 		}
 
 		req := fasthttp.AcquireRequest()
@@ -99,8 +102,8 @@ func (this *fasthttpplug) query(queries *[]string) []queryInfo {
 			fmt.Println("Failed to parse json for", query, err)
 			continue
 		}
-		auto := int64(dat["meta"].(map[string]interface{})["time"].(float64) * float64(time.Second))
-		results = append(results, queryInfo{latency: time.Duration(auto), numRows: len(dat["matches"].([]interface{}))})
+		auto := int64(dat["took"].(float64)) * int64(time.Millisecond)
+		results = append(results, queryInfo{latency: time.Duration(auto), numRows: len(dat["hits"].(map[string]interface{})["hits"].([]interface{}))})
 	}
 	return results
 }
