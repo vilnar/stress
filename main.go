@@ -83,6 +83,8 @@ func makeplug(name string) (stressplugin, error) {
 	switch name {
 	case "mysql":
 		res = getSql()
+	case "mysqlplain":
+		res = createSqlPlainPlug()
 	case "plain3":
 		res = getPlain3()
 	case "json":
@@ -99,7 +101,7 @@ func makeplug(name string) (stressplugin, error) {
 		res = getClientApi()
 	}
 	if res == nil {
-		return nil, errors.New(fmt.Sprintln("Can't create plugin", name, "available values are mysql, plain3, json, fjson, http, fhttp, api, apiclient"))
+		return nil, errors.New(fmt.Sprintln("Can't create plugin", name, "available values are mysql, mysqlplain, plain3, json, fjson, http, fhttp, api, apiclient"))
 	}
 	return res, nil
 }
@@ -216,6 +218,7 @@ func filtershelp() {
 	fmt.Println("\t--filter\tclause which will be appended after 'WHERE MATCH()'...")
 	fmt.Println("\nAvailable plugins:")
 	fmt.Println("\tmysql\texecutes queries via sphinxql, may use filters")
+	fmt.Println("\tmysqlplain\texecutes plain queries from query log. For query_log_format = sphinxql")
 	fmt.Println("\tplain3\thardcoded mysql to 127.0.0.1:9306, index lj, limit 100000 (no options available)")
 	fmt.Println("\tjson\texecutes queries via http, /search/json endpoint")
 	fmt.Println("\tfjson\tsame as json, but works using fasthttp package")
@@ -228,7 +231,7 @@ func filtershelp() {
 func main() {
 
 	bHelp := getopt.BoolLong("help", '?', "", "display help")
-	sPlugin := getopt.StringLong("plugin", 'h', "", "name of plugin", "mysql|plain3|json|fjson|http|fhttp|api")
+	sPlugin := getopt.StringLong("plugin", 'h', "", "name of plugin", "mysql|mysqlplain|plain3|json|fjson|http|fhttp|api")
 	sData := getopt.StringLong("data", 0, "", "path to data dir or file", "path/to/data")
 	iLimit := getopt.IntLong("limit", 0, -1, "N max number of documents to process", "N")
 	iFrom := getopt.IntLong("from", 0, -1, "N starts with defined document", "N")

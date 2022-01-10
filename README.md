@@ -80,3 +80,19 @@ snikolaev@dev:~/stress_tester$ ./stress -h api --limit 10000 --csv -b2 -c10 --da
                                95p latency, ms;99p latency, ms;avg latency, ms;batch size;concurrency;elements count;latencies count;median latency, ms;throughput;total time
                                10.296013;36.874722999999996;3.642010261256754;2;10;9994;9994;1.369458;2666;3.748s
 ```
+
+```
+$ cat query.log
+/* Mon Jan 10 13:22:50.297 2021 conn 11 real 0.000 wall 0.000 found 10 */ SELECT * FROM lj;
+/* Mon Jan 10 13:22:58.944 2021 conn 11 real 0.000 wall 0.000 found 1 */ SELECT count(*) FROM lj;
+
+$ ./stress -h mysqlplain --limit 100000 -b2 -c10 --data query.log --host 127.0.0.1 --port 9306
+```
+
+```
+$ cat queries_match.sql
+@(producer_title,producer_title) (asus)
+@(producer_title,producer_title) (asus rog)
+
+$ ./stress -h mysql --limit 100000 -b2 -c10 --data queries_match.sql --host 127.0.0.1 --port 9306 --index lj
+```
