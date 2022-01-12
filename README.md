@@ -12,6 +12,11 @@ Then perform this couple of commands:
 go get -u github.com/manticoresoftware/stress
 ```
 
+or build from project root directory
+```
+go build -o stress ./
+```
+
 ## usage
 ```
 Usage: stress [-?] [-b N] [-c N] [--csv] [--data path/to/data] [--from N] [-h mysql|plain3|json|fjson|http|fhttp|api] [--limit N] [--tag tag] [parameters ...]
@@ -38,6 +43,7 @@ For mysql plugin you can also provide:
 
 Available plugins:
 	mysql	executes queries via sphinxql, may use filters
+	mysqlplain   executes queries via sphinxql, may use filters
 	plain3	hardcoded mysql to 127.0.0.1:9306, index lj, limit 100000 (no options available)
 	json	executes queries via http, /search/json endpoint
 	fjson	same as json, but works using fasthttp package

@@ -43,7 +43,12 @@ func (this *sqlPlainPlug) setup(opts interface{}) {
 	this.dsn = a.dsn
 	db, err := sql.Open("mysql", this.dsn)
 	if err != nil {
-		panic(err.Error())
+		panic(err)
+	}
+
+	err = db.Ping()
+	if err != nil {
+		panic(err)
 	}
 
 	this.sphinxql = db
@@ -53,20 +58,20 @@ func (this *sqlPlainPlug) query(queries *[]string) []queryInfo {
 	results := make([]queryInfo, 0, len(*queries))
 	for _, query := range *queries {
 		start := time.Now()
-		rows, _ := this.sphinxql.Query(query)
+		rows, err := this.sphinxql.Query(query)
+		if err != nil {
+			// log.Printf("Something is wrong with query: %s\n", query)
+			continue
+		}
 		elapsed := time.Since(start)
 
 		count := 0
-		if rows != nil {
-			for rows.Next() {
-				count++
-			}
-			_ = rows.Close()
+		for rows.Next() {
+			count++
 		}
 
 		results = append(results, queryInfo{latency: elapsed, numRows: count})
 	}
-	// fmt.Println (results)
 	return results
 }
 
