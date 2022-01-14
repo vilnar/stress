@@ -288,8 +288,8 @@ func main() {
 	template.init(*opts)
 
 	resultchan := make(chan interface{}, *iConcurrency*10)
-	var vg sync.WaitGroup
-	vg.Add(*iConcurrency)
+	var wg sync.WaitGroup
+	wg.Add(*iConcurrency)
 
 	for i := 0; i < *iConcurrency; i++ {
 		go func() { // this routine(s) do the benching itself, taking query strings from src channel
@@ -313,7 +313,7 @@ func main() {
 				resultchan <- executor.query(&buf)
 			}
 			executor.close()
-			vg.Done()
+			wg.Done()
 		}()
 	}
 
@@ -350,7 +350,7 @@ func main() {
 		}
 	}()
 
-	vg.Wait()
+	wg.Wait()
 	close(resultchan)
 
 	collected := len(collector)
